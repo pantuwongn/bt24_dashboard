@@ -27,3 +27,4 @@ services:
       - ./fastapi_app/requirements.txt:/code/requirements.txt
     environment:
       - API_KEY=akljnv13bvi2vfo0b0bw
+      - BT_HOOK_URL=https://www.dryv.site/rest/63/y9hluey3m325tme5

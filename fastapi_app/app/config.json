@@ -1,0 +1,40 @@
+{
+  "org": [
+          {
+            "department_id": "1",
+            "manager_id": "9",
+            "position_text": "GM",
+            "description": "Production Engineering"
+          },
+          {
+            "department_id": "9",
+            "manager_id": "11",
+            "position_text": "MGR",
+            "description": "Admin"
+          },
+          {
+            "department_id": "29",
+            "manager_id": "29",
+            "position_text": "MGR",
+            "description": "Alternator"
+          },
+          {
+            "department_id": "27",
+            "manager_id": "31",
+            "position_text": "MGR",
+            "description": "Starter"
+          },
+          {
+            "department_id": "30",
+            "manager_id": "73",
+            "position_text": "MGR",
+            "description": "ECC & Others"
+          },
+          {
+            "department_id": "31",
+            "manager_id": "9",
+            "position_text": "MGR",
+            "description": "Automation & DX"
+          }
+        ]
+}

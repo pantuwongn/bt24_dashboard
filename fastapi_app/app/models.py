@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Union
+from typing import List, Optional
 
 
 class DepartmentModel( BaseModel ):
@@ -7,16 +7,16 @@ class DepartmentModel( BaseModel ):
          a list of organization 
     '''
 
-    dep_id: str
-    dep_name: str
-    dep_head_id: str
-    dep_head_name: str
-    dep_head_pos: str
-    dep_member: List[str]
+    dep_id: Optional[str]
+    dep_name: Optional[str]
+    dep_head_id: Optional[str]
+    dep_head_name: Optional[str]
+    dep_head_pos: Optional[str]
+    parent: Optional[str]
 
 class OrganizationModel( BaseModel ):
     ''' A model of organization section
     '''
 
     # organization is a list of deparntment
-    dep_list: List[DepartmentModel]
+    dep_list: Optional[List[DepartmentModel]]

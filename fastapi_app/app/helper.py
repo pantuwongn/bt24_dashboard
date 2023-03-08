@@ -130,6 +130,9 @@ def get_tasks_in_workgroup( wg_id: str ) -> List[dict]:
                 all_tasks.extend(rj['result'])
         return all_tasks
 
+def get_comment_in_task( task_id: str ) -> List[dict]:
+    pass
+
 def get_organizations():
     ''' This function call Bitrix24 endpoints to get organization information
     '''
@@ -196,4 +199,50 @@ def get_workgroups( dep_id: str ) -> List[dict]:
     all_data_list = []
     focus_data_list = []
     for workgroup in workgroups:
-        pass
+        workgroup_id = workgroup.get('ID', None)
+        workgroup_name = workgroup.get('NAME', None)
+
+        # get tasks in workgroup
+        all_tasks = get_tasks_in_workgroup( workgroup_id )
+
+        # count taks status
+        num_not_start = 0
+        num_delay = 0
+        num_on_plan = 0
+        num_completed = 0
+        comment_dict = {}
+        for task in all_tasks:
+            task_id = task.get('ID', None)
+            status = task.get('STATUS', None)
+            real_status = taks.get('REAL_STATUS', None)
+            if not status or not real_status or not task_id
+                continue
+
+            if real_status == '5':
+                num_completed += 1
+            elif status == '-1':
+                num_delay += 1
+            elif real_status in ['1', '2']
+                num_not_start += 1
+            elif real_status in ['3', '4', '6', '7']:
+                num_on_plan += 1
+        
+            # get comment in task
+            all_comments = get_comment_in_task( task['ID'] )
+
+        taskDataObj = TaskDataModel( dep_id = dep_id,
+                                        workgroup_id = workgroup_id,
+                                        workgroup_name = workgroup_name,
+                                        num_not_start = num_not_start,
+                                        num_delay = num_delay,
+                                        num_on_plan = num_on_plan,
+                                        num_completed = num_completed,
+                                        status1 = ''
+                                        status2 = ''
+                                    )
+        all_data_list.append(taskDataObj)
+        if workgroup_id in config['focused_project_id'] or \
+            'focused_project_id' not in config or \
+            not config['focused_project_id']:
+            focus_data_list.append(taskDataObj)
+    return TaskDataListModel(data_list=all_data_list), TaskDataListModel(data_list=focus_data_list)

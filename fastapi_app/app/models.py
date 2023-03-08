@@ -41,3 +41,9 @@ class TaskDataListModel( BaseModel ):
     '''
 
     data_list: Optional[List[TaskDataModel]]
+
+class TaskCountResponseModel( BaseModel ):
+    ''' A model to response about task count
+    '''
+    all_workgroups: Optional[List[TaskDataModel]]
+    focused_projects: Optional[List[TaskDataModel]]

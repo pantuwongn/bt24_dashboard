@@ -5,7 +5,7 @@ from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Depends
 from typing import List, Dict
 
-from app.models import DepartmentModel, OrganizationModel
+from app.models import DepartmentModel, OrganizationModel, TaskDataListModel, TaskDataModel
 
 X_API_KEY = APIKeyHeader(name="X-API-Key")
 api_key = os.environ.get("API_KEY")
@@ -183,3 +183,17 @@ def get_organizations():
                                     )
             dep_list.append(dep_obj)
         return OrganizationModel(dep_list = dep_list)
+
+def get_workgroups( dep_id: str ) -> List[dict]:
+    ''' This function returns workgroups information to display in dashboard
+    '''
+
+    # get workgroup in department with department with dep_id
+    #   we check if owner_id of each workgroup in the department
+    workgroups = get_workgroup_in_dep( dep_id )
+
+    # for each workgroup, construct data and put in list
+    all_data_list = []
+    focus_data_list = []
+    for workgroup in workgroups:
+        pass

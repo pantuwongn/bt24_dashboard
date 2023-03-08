@@ -20,3 +20,24 @@ class OrganizationModel( BaseModel ):
 
     # organization is a list of deparntment
     dep_list: Optional[List[DepartmentModel]]
+
+
+class TaskDataModel( BaseModel ):
+    ''' A model of data to be shown for each workgroup
+    '''
+
+    dep_id: str
+    workgroup_id: Optional[str]
+    workgroup_name: Optional[str]
+    num_not_start: int
+    num_delay: int
+    num_on_plan: int
+    num_completed: int
+    status1: Optional[str]
+    status2: Optional[str]
+
+class TaskDataListModel( BaseModel ):
+    ''' A model for workgroup section
+    '''
+
+    data_list: Optional[List[TaskDataModel]]

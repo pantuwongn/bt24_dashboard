@@ -100,19 +100,35 @@ def get_users_in_workgroup( wg_id:str ) -> List[dict]:
     else:
         all_user_data = rj['result']
         all_user_ids = [x['USER_ID'] for x in all_user_data]
-        url = f'{BASE_URL}/user.get.json?ORDER[ID]=ASC&ID={all_user_ids}'
-        print(url)
-        all_users = rj['result']
+        all_user = []
+        for user_id in all_user_ids:
+            user = get_user(user_id)
+            if user:
+                all_user.append(user)
+
+        return all_user
+
+def get_tasks_in_workgroup( wg_id: str ) -> List[dict]:
+    ''' This function returns a list of tasks in workgroup
+    '''
+
+    url = f'{BASE_URL}/task.item.list?ORDER[ID]=ASC&FILTER[GROUP_ID]={wg_id}'
+    r = requests.get(url)
+    rj = r.json()
+    if r.status_code != 200 or 'result' not in rj:
+        return None
+    else:
+        all_tasks = rj['result']
         while 'next' in rj:
-            last_id = all_users[-1]['ID']
-            url = f'{url}&filter[>ID]={last_id}'
+            last_id = all_tasks[-1]['ID']
+            url = f'{url}&FILTER[>ID]={last_id}'
             r = requests.get(url)
             rj = r.json()
             if r.status_code != 200 or 'result' not in rj:
                 break
             else:
-                all_users.extend(rj['result'])
-        return all_users
+                all_tasks.extend(rj['result'])
+        return all_tasks
 
 def get_organizations():
     ''' This function call Bitrix24 endpoints to get organization information

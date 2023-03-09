@@ -131,7 +131,25 @@ def get_tasks_in_workgroup( wg_id: str ) -> List[dict]:
         return all_tasks
 
 def get_comment_in_task( task_id: str ) -> List[dict]:
-    pass
+    ''' this function returns all comments in task by task id
+    '''
+    url = f'{BASE_URL}/task.commentitem.getlist?TASKID={task_id}'
+    r = requests.get(url)
+    rj = r.json()
+    if r.status_code != 200 or 'result' not in rj:
+        return None
+    else:
+        all_comments = rj['result']
+        while 'next' in rj:
+            last_id = all_comments[-1]['ID']
+            url = f'{url}&FILTER[>ID]={last_id}'
+            r = requests.get(url)
+            rj = r.json()
+            if r.status_code != 200 or 'result' not in rj:
+                break
+            else:
+                all_comments.extend(rj['result'])
+        return all_comments
 
 def get_organizations():
     ''' This function call Bitrix24 endpoints to get organization information
@@ -210,26 +228,37 @@ def get_workgroups( dep_id: str ) -> List[dict]:
         num_delay = 0
         num_on_plan = 0
         num_completed = 0
-        comment_dict = {}
+        status1 = None
+        status2 = None
+        comment_list = []
         for task in all_tasks:
             task_id = task.get('ID', None)
             status = task.get('STATUS', None)
-            real_status = taks.get('REAL_STATUS', None)
-            if not status or not real_status or not task_id
+            real_status = task.get('REAL_STATUS', None)
+            if not status or not real_status or not task_id:
                 continue
 
             if real_status == '5':
                 num_completed += 1
             elif status == '-1':
                 num_delay += 1
-            elif real_status in ['1', '2']
+            elif real_status in ['1', '2']:
                 num_not_start += 1
             elif real_status in ['3', '4', '6', '7']:
                 num_on_plan += 1
         
             # get comment in task
             all_comments = get_comment_in_task( task['ID'] )
-
+            for comment in all_comments:
+                d = comment['POST_DATE']
+                t = comment['POST_MESSAGE']
+                if '[USER' not in t:
+                    comment_list.append((d,t))
+        comment_list.sort()
+        if comment_list:
+            status1 = comment_list[0][1]
+        if len(comment_list) > 2:
+            status2 = comment_list[1][1]
         taskDataObj = TaskDataModel( dep_id = dep_id,
                                         workgroup_id = workgroup_id,
                                         workgroup_name = workgroup_name,
@@ -237,8 +266,8 @@ def get_workgroups( dep_id: str ) -> List[dict]:
                                         num_delay = num_delay,
                                         num_on_plan = num_on_plan,
                                         num_completed = num_completed,
-                                        status1 = ''
-                                        status2 = ''
+                                        status1 = status1,
+                                        status2 = status2
                                     )
         all_data_list.append(taskDataObj)
         if workgroup_id in config['focused_project_id'] or \

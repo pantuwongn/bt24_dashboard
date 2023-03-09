@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.models import TaskCountResponseModel, OrganizationModel, 
+from app.models import TaskCountResponseModel, OrganizationModel
 from app.helper import api_key_auth, get_organizations, get_workgroups
 
 app = FastAPI()

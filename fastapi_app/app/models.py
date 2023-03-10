@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 class DepartmentModel( BaseModel ):
@@ -35,6 +35,7 @@ class TaskDataModel( BaseModel ):
     num_completed: int
     status1: Optional[str]
     status2: Optional[str]
+    workload: Optional[Dict]
 
 class TaskDataListModel( BaseModel ):
     ''' A model for workgroup section

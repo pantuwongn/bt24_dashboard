@@ -1,6 +1,9 @@
 import os
+import calendar
 import requests
 import json
+import datetime
+from math import ceil
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Depends
 from typing import List, Dict
@@ -15,6 +18,48 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(HERE, 'config.json')) as f:
     config = json.load(f)
 
+
+def week_of_month(dt):
+    """ Returns the week of the month for the specified date.
+    """
+
+    first_day = dt.replace(day=1)
+
+    dom = dt.day
+    adjusted_dom = dom + first_day.weekday()
+
+    return str(int(ceil(adjusted_dom/7.0))) + ' ' + datetime.datetime.strftime(dt, '%b')
+
+def get_start_and_end_date_from_calendar_week(year, calendar_week):       
+    sunday = datetime.datetime.strptime(f'{year}-{calendar_week}-1', "%Y-%W-%w").date()
+    return sunday,sunday + datetime.timedelta(days=6.9)
+
+def get_workload_period():
+
+    period = []
+    week_list = []
+
+    today = datetime.datetime.now()
+    current_week_year = datetime.datetime.strftime(today, '%W %Y')
+    week = int(current_week_year.split()[0])
+    year = int(current_week_year.split()[1])
+    f_day, l_day = get_start_and_end_date_from_calendar_week(year, week)
+    
+    prev = -1
+    for i in range(-2,10):
+        wm = week_of_month(f_day + datetime.timedelta(days=(7*i)))
+        cur = int(wm.split()[0])
+        if cur < prev and cur != 1:
+            cur = 1
+        elif cur > prev and cur != prev + 1:
+            cur -= 1
+        period.append(f'{cur} {wm.split()[1]}')
+        week_list.append((
+            datetime.datetime.strftime(f_day + datetime.timedelta(days=(7*i)), '%Y-%m-%d'),
+            datetime.datetime.strftime(l_day + datetime.timedelta(days=(7*i)), '%Y-%m-%d')
+        ))
+        prev = cur
+    return period, week_list
 
 def api_key_auth(x_api_key: str = Depends(X_API_KEY)):
     # this function is used to validate X-API-KEY in request header
@@ -209,6 +254,11 @@ def get_workgroups( dep_id: str ) -> List[dict]:
     ''' This function returns workgroups information to display in dashboard
     '''
 
+    # period and weeklist
+    period, week_list = get_workload_period()
+    init_workload_list = [{x:0} for x in period]
+
+
     # get workgroup in department with department with dep_id
     #   we check if owner_id of each workgroup in the department
     workgroups = get_workgroup_in_dep( dep_id )
@@ -220,8 +270,30 @@ def get_workgroups( dep_id: str ) -> List[dict]:
         workgroup_id = workgroup.get('ID', None)
         workgroup_name = workgroup.get('NAME', None)
 
+        if not workgroup_id:
+            continue
+
         # get tasks in workgroup
         all_tasks = get_tasks_in_workgroup( workgroup_id )
+
+        # get user in workgroup
+        all_users = get_users_in_workgroup( workgroup_id )
+        workload_dict = {}
+        for user in all_users:
+            f_name = user[0].get('NAME', None)
+            l_name = user[0].get('LAST_NAME', None)
+            if f_name and l_name:
+                responsible_name = f'{f_name} {l_name}'
+            elif f_name:
+                responsible_name = f_name
+            elif l_name:
+                responsible_name = l_name
+            else:
+                responsible_name = ''
+            workload_dict[user[0]['ID']] = {
+                'name': responsible_name,
+                'workload': init_workload_list
+            }
 
         # count taks status
         num_not_start = 0
@@ -246,7 +318,24 @@ def get_workgroups( dep_id: str ) -> List[dict]:
                 num_not_start += 1
             elif real_status in ['3', '4', '6', '7']:
                 num_on_plan += 1
-        
+
+
+            responsible_id = task.get('RESPONSIBLE_ID', None)
+            if responsible_id in workload_dict:
+                start_date_str = task.get('START_DATE_PLAN', None)
+                deadline_date_str = task.get('DEADLINE', None)
+                if start_date_str:
+                    start_date_str = start_date_str[:10]
+                if deadline_date_str:
+                    deadline_date_str = deadline_date_str[:10]
+                for idx, w in enumerate(week_list):
+                    if ( start_date_str and w[0] >= start_date_str and deadline_date_str and w[0] <= deadline_date_str ) or \
+                        ( start_date_str and w[0] >= start_date_str ) or \
+                        ( deadline_date_str and w[0] <= deadline_date_str ) or \
+                        ( not start_date_str and not deadline_date_str ):
+                        for key in workload_dict[responsible_id]['workload'][idx].keys():
+                            workload_dict[responsible_id]['workload'][idx][key] += 1
+
             # get comment in task
             all_comments = get_comment_in_task( task['ID'] )
             for comment in all_comments:
@@ -267,7 +356,8 @@ def get_workgroups( dep_id: str ) -> List[dict]:
                                         num_on_plan = num_on_plan,
                                         num_completed = num_completed,
                                         status1 = status1,
-                                        status2 = status2
+                                        status2 = status2,
+                                        workload = workload_dict
                                     )
         all_data_list.append(taskDataObj)
         if workgroup_id in config['focused_project_id'] or \

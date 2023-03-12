@@ -4,11 +4,22 @@ import Container from '@/components/layout'
 import JobManagementDashboardView from '@/views/JobManagementDashboardView'
 import { useEffect } from 'react'
 import { fetchOrganization } from '@/actions'
+import { useRouter } from 'next/router'
+import { useOrganizationStore } from '@/store'
 
 const Home: NextPage = () => {
+  const router = useRouter()
+  const { setSelectedDepartmentId } = useOrganizationStore()
+
   useEffect(() => {
     fetchOrganization()
   }, [])
+
+  useEffect(() => {
+    if (router.query.departmentId) {
+      setSelectedDepartmentId(router.query.departmentId as string)
+    }
+  }, [router, setSelectedDepartmentId])
 
   return (
     <>

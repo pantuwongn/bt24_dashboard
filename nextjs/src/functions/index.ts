@@ -1,1 +1,1 @@
-export * from './template.function'
+export * from './chart.function'

@@ -1,19 +1,41 @@
 import { Layout } from "antd";
-import { FC } from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import DepartmentHierachyView from "./DepartmentHierarchyView";
 import ProjectOverviewView from "./ProjectOverviewView";
+import { useLayoutStore, useOrganizationStore } from "@/store";
+import { fetchTaskByDepartmentId } from "@/actions";
 
 const { Content, Sider } = Layout;
 
 interface IProps {
-
 }
 
 const JobManagementDashboardView: FC<IProps> = ({ }: IProps) => {
+  const {
+    selectedDepartmentId,
+    currentDepartmentProject
+  } = useOrganizationStore()
+  const {
+    setIsLoading
+  } = useLayoutStore()
+
+  const doFetchTaskByDepartmentId = useCallback(async () => {
+    if (selectedDepartmentId !== null) {
+      setIsLoading(true)
+      await fetchTaskByDepartmentId(selectedDepartmentId)
+      setIsLoading(false)
+    }
+  }, [selectedDepartmentId, setIsLoading])
+  useEffect(() => {
+    doFetchTaskByDepartmentId()
+  }, [doFetchTaskByDepartmentId])
+
+  const departmentProject = currentDepartmentProject()
+
   return (
     <Layout className="w-full h-full">
       <Sider width={300} style={{ paddingTop: 24, background: 'white' }}>
-        <DepartmentHierachyView/>
+        <DepartmentHierachyView />
       </Sider>
 
       <Layout style={{ padding: 24 }}>
@@ -28,7 +50,10 @@ const JobManagementDashboardView: FC<IProps> = ({ }: IProps) => {
               padding: 24,
               background: 'white'
             }}>
-            <ProjectOverviewView/>
+            {departmentProject === null ?
+              <div className="font-bold text-3xl text-center">Please select any department</div> :
+              <ProjectOverviewView departmentProject={departmentProject}/>
+            }
           </Content>
         </Content>
       </Layout>

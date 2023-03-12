@@ -1,8 +1,9 @@
 import DepartmentCard from "@/components/card/department-card";
-import { useOrganizationStore } from "@/store/organization.store";
+import { useOrganizationStore } from "@/store";
 import { Department } from "@/types/organization";
 import { Tree } from "antd";
 import { DataNode } from "antd/lib/tree";
+import { useRouter } from "next/router";
 import { FC, useCallback, useEffect, useState } from "react";
 
 interface IProps {
@@ -10,10 +11,17 @@ interface IProps {
 }
 
 function CreateDepartmentTreeData(departmentList: Department[]): DataNode[] {
+  const router = useRouter()
+  const { selectedDepartmentId, setSelectedDepartmentId } = useOrganizationStore()
+  const handleDepartmentCardClick = useCallback((department: Department) => {
+    router.query.departmentId = department.dep_id
+    router.replace({ pathname: router.pathname, query: router.query })
+    setSelectedDepartmentId(department.dep_id)
+  }, [setSelectedDepartmentId, router])
   const departmentDataNodeMapById: Record<string, DataNode> = {}
   const treeData: DataNode[] = []
   departmentList.forEach(department => {
-    const cardNode = <DepartmentCard department={department} />
+    const cardNode = <DepartmentCard isSelected={department.dep_id === selectedDepartmentId} department={department} onClick={handleDepartmentCardClick} />
     const dataNode = {
       key: department.dep_id,
       title: cardNode,

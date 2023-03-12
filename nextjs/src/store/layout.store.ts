@@ -1,4 +1,4 @@
-import create from "zustand";
+import { create } from "zustand";
 import { ILayoutState } from "./interface/layout.interface";
 import { LayoutSlice } from "./slices/layout.slice";
 

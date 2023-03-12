@@ -1,15 +1,23 @@
 body {
-    margin: 0;
+  margin: 0;
 }
 
 .ant-tree-node-content-wrapper {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .ant-select-selection-item {
-    justify-content: left;
+  justify-content: left;
 }
 
 .ant-segmented-item-label {
+  display: flex;
+}
+
+.project-horizontal-card {
+  .ant-card-body {
     display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }

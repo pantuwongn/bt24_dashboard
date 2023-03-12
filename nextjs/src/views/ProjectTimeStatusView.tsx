@@ -16,7 +16,7 @@ const TimeStatusList = [
 const ProjectTimeStatusView: FC<IProps> = ({ className }) => {
   const parentClass = className ?? ''
   return (
-    <div className={`flex flex-col justify-center items-center ${parentClass}`}>
+    <div className={`flex flex-col justify-start items-center ${parentClass}`}>
       <Select className="w-full text-left" defaultValue={TimeStatusList[0]}>
         { TimeStatusList.map((timeStatus, index) => <Select.Option key={index}>{ timeStatus }</Select.Option>) }
       </Select>

@@ -404,7 +404,8 @@ def get_workgroups( dep_id: str ) -> List[dict]:
         all_data_list.append(taskDataObj)
         if 'focused_project_id' not in config or \
             dep_id not in config['focused_project_id'] or \
-            workgroup_id in config['focused_project_id'][dep_id]:
+            workgroup_id in config['focused_project_id'][dep_id] or \
+            not config['focused_project_id'][dep_id]:
             focus_data_list.append(taskDataObj)
 
     return TaskDataListModel(data_list=all_data_list), TaskDataListModel(data_list=focus_data_list)

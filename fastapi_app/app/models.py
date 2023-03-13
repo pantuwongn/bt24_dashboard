@@ -36,6 +36,8 @@ class TaskDataModel( BaseModel ):
     status1: Optional[str]
     status2: Optional[str]
     workload: Optional[Dict]
+    kpi: Optional[Dict]
+    budget: Optional[Dict]
 
 class TaskDataListModel( BaseModel ):
     ''' A model for workgroup section

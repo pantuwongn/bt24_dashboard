@@ -1,14 +1,15 @@
 import os
-import calendar
+import time
 import requests
 import json
 import datetime
+from random import randint
 from math import ceil
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Depends
 from typing import List, Dict
 
-from app.models import DepartmentModel, OrganizationModel, TaskDataListModel, TaskDataModel
+from app.models import DepartmentModel, OrganizationModel, TaskDataListModel, TaskDataModel, TaskCountResponseModel
 
 X_API_KEY = APIKeyHeader(name="X-API-Key")
 api_key = os.environ.get("API_KEY")
@@ -17,6 +18,45 @@ BASE_URL = os.environ.get("BT_HOOK_URL")
 HERE = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(HERE, 'config.json')) as f:
     config = json.load(f)
+
+
+def _generate_kpi():
+    ''' this function returns kpi output for mock data
+    '''
+
+    return {
+        "Safety": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Internal loss": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "De-carbon": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "MH/MP saving": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Investment": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Expense": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Cost down": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Overtime": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+    }
+
+
+def _generate_budget():
+    ''' this function returns budget for mock data
+    '''
+
+    return {
+        'FY': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        '1st': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        '2nd': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Jan': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Feb': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Mar': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Apr': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'May': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Jun': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Jul': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Aug': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Sep': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Oct': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Nov': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+        'Dec': {"actual": randint(3000, 6000), "plan": randint(3000, 6000)},
+    }
 
 
 def week_of_month(dt):
@@ -357,11 +397,62 @@ def get_workgroups( dep_id: str ) -> List[dict]:
                                         num_completed = num_completed,
                                         status1 = status1,
                                         status2 = status2,
-                                        workload = workload_dict
+                                        workload = workload_dict,
+                                        kpi = _generate_kpi(),
+                                        budget = _generate_budget()
                                     )
         all_data_list.append(taskDataObj)
-        if workgroup_id in config['focused_project_id'] or \
-            'focused_project_id' not in config or \
-            not config['focused_project_id']:
+        if 'focused_project_id' not in config or \
+            dep_id not in config['focused_project_id'] or \
+            workgroup_id in config['focused_project_id'][dep_id]:
             focus_data_list.append(taskDataObj)
+
     return TaskDataListModel(data_list=all_data_list), TaskDataListModel(data_list=focus_data_list)
+
+def query_task(dep_list, wg_list):
+
+    try:
+        # get organization
+        s = time.time()
+        ok = False
+        while not ok:
+            try:
+                org_list = get_organizations()
+                ok = True
+            except Exception as e:
+                print(f'Error ===> {e}')
+        print(f'[thread] Get org_list ({time.time()-s} secs)')
+        # for each organization
+        workgroup_dict = {}
+        for org in org_list.dep_list:
+            dep_id = org.dep_id
+            s = time.time()
+            ok = False
+            try:
+                while not ok:
+                    all_workgroups, focused_projects = get_workgroups(dep_id)
+                    ok = True
+            except Exception as e:
+                print(f'Error ===> {e}')           
+            all_obj = TaskCountResponseModel (
+                all_workgroups=all_workgroups.data_list,
+                focused_projects=focused_projects.data_list
+            )
+            workgroup_dict[dep_id] = all_obj
+            print(f'[thread] Get workgroup for {org.dep_name} ({time.time()-s} secs)')
+        print('[thread] Get all workgroups')
+        if len(dep_list) < 10:
+            dep_list.append(org_list)
+        else:
+            dep_list = dep_list[1:]
+            dep_list.append(org_list)
+    
+        if len(wg_list) < 10:
+            wg_list.append(workgroup_dict)
+        else:
+            wg_list = wg_list[1:]
+            wg_list.append(workgroup_dict)
+
+    except Exception as e:
+        print(f'Error ===> {e}')
+

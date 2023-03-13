@@ -25,14 +25,14 @@ def _generate_kpi():
     '''
 
     return {
-        "Safety": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "Internal loss": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "De-carbon": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "MH/MP saving": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "Investment": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "Expense": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "Cost down": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
-        "Overtime": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "hrs/M"},
+        "Safety": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "Cases"},
+        "Internal loss": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "kB"},
+        "De-carbon": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "tCo2"},
+        "MH/MP saving": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "HC"},
+        "Investment": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "kB"},
+        "Expense": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "kB"},
+        "Cost down": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "kB/M"},
+        "Overtime": {"actual": randint(40, 90), "plan": randint(40, 90), "unit": "Hrs"},
     }
 
 
